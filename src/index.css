@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-zinc-950 text-zinc-50 font-sans antialiased overflow-x-hidden select-none;
+  }
+}
+
+/* Custom glow animation */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(1) translate(0px, 0px);
+  }
+  50% {
+    opacity: 0.25;
+    transform: scale(1.1) translate(10px, -15px);
+  }
+}
+
+@keyframes pulseGlowAlt {
+  0%, 100% {
+    opacity: 0.12;
+    transform: scale(1.15) translate(0px, 0px);
+  }
+  50% {
+    opacity: 0.22;
+    transform: scale(0.95) translate(-15px, 15px);
+  }
+}
+
+.animate-glow-1 {
+  animation: pulseGlow 18s ease-in-out infinite;
+}
+
+.animate-glow-2 {
+  animation: pulseGlowAlt 22s ease-in-out infinite;
+}
+
+/* Custom scrollbars (only full page permitted, but style it nicely) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(9, 9, 11, 0.5);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
