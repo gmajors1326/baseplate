@@ -278,6 +278,11 @@ export default function App() {
     }
   };
 
+  const handlePasteNewTranscriptFromPalette = () => {
+    setActiveSelfItem('seo');
+    setActiveTab('transcripts');
+  };
+
   const handleClearHistory = async () => {
     try {
       const res = await fetch('/api/history', { method: 'DELETE' });
