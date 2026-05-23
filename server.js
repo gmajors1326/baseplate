@@ -38,55 +38,6 @@ const SEED_TRANSCRIPTS = [
     size: '6.0 KB',
     wordCount: 780,
     content: `# Hermes Agent OS Transcript\n\n[Developer] Hermes needs access to read and write filesystem files to execute commands. Let's build the workspace. We need to verify that we are avoiding hashtags and banned phrases in our outputs.\n\n[AI] Affirmative. The safety checks are online. Banned terms like the calm content method are completely blocked. Emojis and links are used instead of hashtags.`
-  },
-  {
-    id: 'julian-goldie-ai',
-    name: 'julian-goldie-ai',
-    size: '4.2 KB',
-    wordCount: 540,
-    content: `# Julian Goldie AI Strategy Session\n\n[Host] Today we're mapping out the SEO Content Pipeline. The goal is to generate 5 unique articles for our funnels and deploy them directly to Netlify in parallel.\n\n[Guest] This is extremely efficient. Using automated static site builders and Vite, we can push content to the CDN edge in seconds. The keyword targeting must be clean.`
-  },
-  {
-    id: 'hermes-mcp-server',
-    name: 'hermes-mcp-server',
-    size: '5.9 KB',
-    wordCount: 750,
-    content: `# Hermes MCP Server Integration\n\n[SysAdmin] The Model Context Protocol (MCP) server is online. We can now load tool schemas lazily and call tools directly. The node is operating on port 8080.\n\n[Engineer] Excellent. The react dashboard should connect to the local node to list active servers and display real-time console logs.`
-  },
-  {
-    id: 'hermes-computer-use',
-    name: 'hermes-computer-use',
-    size: '5.9 KB',
-    wordCount: 760,
-    content: `# Hermes Computer Use Session Log\n\n[Agent] Initiating browser session. Accessing localhost:5173 to verify page rendering.\n\n[Supervisor] Page is rendering correctly. Colors match the midnight industrial dark scheme, and font sizes comply with the high contrast white typography. Verify command palette opens with control K.`
-  },
-  {
-    id: 'claude-hermes-agent',
-    name: 'claude-hermes-agent',
-    size: '5.7 KB',
-    wordCount: 730,
-    content: `# Claude & Hermes Pair Programming Session\n\n[Claude] I'm building out the sidebar component now. Let's add the dynamic local clocks and section dividers. I'll make sure there is no internal scrolling inside the cards to follow layout guidelines.\n\n[Hermes] Correct. Standard full-page scrolling only when the view height exceeds the viewport.`
-  },
-  {
-    id: 'openclaw-seo-agent',
-    name: 'openclaw-seo-agent',
-    size: '4.0 KB',
-    wordCount: 510,
-    content: `# OpenClaw SEO Agent Log\n\n[Claw] Running keyword research on target queries. Generating optimized meta titles and headings. Recommending clean slug paths without special characters.\n\n[System] File slug saved as lowercase-hyphenated. Ready for content writing step.`
-  },
-  {
-    id: 'hermes-seo',
-    name: 'hermes-seo',
-    size: '4.4 KB',
-    wordCount: 560,
-    content: `# Hermes SEO Strategy Discussion\n\n[AI] I have completed the keyword optimization logic. The article outline contains meta titles, introduction, heading hierarchy (H1, H2, H3), and call-to-actions.\n\n[User] Excellent. Ensure no hashtags are generated in the body content or bios.`
-  },
-  {
-    id: 'goldie-agency',
-    name: 'goldie-agency',
-    size: '4.8 KB',
-    wordCount: 620,
-    content: `# Goldie Agency Team Chat\n\n[Lead] We are launching the five Netlify funnels today. The target keyword and file slugs are configured. Let's kick off the automated build.\n\n[SysOp] Build triggered. Staggered CDN deployment in progress. All 5 funnels are live.`
   }
 ];
 
@@ -107,19 +58,72 @@ const SEED_HISTORY = [
   }
 ];
 
+const SEED_GOALS = [
+  { id: 'goal-1', title: 'Generate Q2 SEO Strategy', priority: 'High', agent: 'Claude', status: 'Active' },
+  { id: 'goal-2', title: 'Audit Site Speeds', priority: 'Medium', agent: 'Hermes', status: 'Pending' },
+  { id: 'goal-3', title: 'Verify UI Styling Guidelines', priority: 'High', agent: 'OpenClaw', status: 'Completed' }
+];
+
+const SEED_NOTES = [
+  { id: 'note-1', title: 'Vite Config Template', content: 'export default defineConfig({\n  plugins: [react()],\n  server: {\n    proxy: {\n      "/api": {\n        target: "http://localhost:3001",\n        changeOrigin: true\n      }\n    }\n  }\n})' },
+  { id: 'note-2', title: 'SEO Outline Prompt', content: 'Act as an expert SEO writer. Write a 1000-word article for the keyword. Ensure heading hierarchies (H1, H2, H3) are used and no hashtags are included.' }
+];
+
+const SEED_TASKS = [
+  { id: 'task-1', title: 'Configure Render Webhooks', status: 'backlog' },
+  { id: 'task-2', title: 'Analyze transcripts for key logs', status: 'in-progress' },
+  { id: 'task-3', title: 'Write project README.md', status: 'done' }
+];
+
+const SEED_JOURNAL = [
+  { id: 'log-1', message: 'Agent Hermes initialized local file system writes.', timestamp: '2026-05-23 11:20' },
+  { id: 'log-2', message: 'Claude completed production build verification (0 warnings).', timestamp: '2026-05-23 14:15' }
+];
+
+const SEED_MEMORY = [
+  { id: 'mem-1', key: 'DEPLOY_TARGET', value: 'Render' },
+  { id: 'mem-2', key: 'THEME_NAME', value: 'Midnight Industrial' },
+  { id: 'mem-3', key: 'LOCAL_PORT', value: '5173' }
+];
+
 // Helper: load database
 function loadDb() {
   if (!fs.existsSync(DB_PATH)) {
-    const defaultDb = { transcripts: SEED_TRANSCRIPTS, history: SEED_HISTORY };
+    const defaultDb = { 
+      transcripts: SEED_TRANSCRIPTS, 
+      history: SEED_HISTORY,
+      goals: SEED_GOALS,
+      notes: SEED_NOTES,
+      tasks: SEED_TASKS,
+      journal: SEED_JOURNAL,
+      memory: SEED_MEMORY
+    };
     fs.writeFileSync(DB_PATH, JSON.stringify(defaultDb, null, 2), 'utf-8');
     return defaultDb;
   }
   try {
     const raw = fs.readFileSync(DB_PATH, 'utf-8');
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    
+    // Ensure all collections exist (migration support)
+    if (!parsed.goals) parsed.goals = SEED_GOALS;
+    if (!parsed.notes) parsed.notes = SEED_NOTES;
+    if (!parsed.tasks) parsed.tasks = SEED_TASKS;
+    if (!parsed.journal) parsed.journal = SEED_JOURNAL;
+    if (!parsed.memory) parsed.memory = SEED_MEMORY;
+
+    return parsed;
   } catch (err) {
     console.error('Error reading database.json, resetting', err);
-    return { transcripts: SEED_TRANSCRIPTS, history: SEED_HISTORY };
+    return { 
+      transcripts: SEED_TRANSCRIPTS, 
+      history: SEED_HISTORY,
+      goals: SEED_GOALS,
+      notes: SEED_NOTES,
+      tasks: SEED_TASKS,
+      journal: SEED_JOURNAL,
+      memory: SEED_MEMORY
+    };
   }
 }
 
@@ -128,13 +132,17 @@ function saveDb(data) {
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 
-// Ensure database and output dir exist
+// Initialize database
 loadDb();
 if (!fs.existsSync(OUTPUT_DIR)) {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 
-// REST APIs
+/* ========================================================
+   REST API Endpoints
+   ======================================================== */
+
+// Transcripts API
 app.get('/api/transcripts', (req, res) => {
   const db = loadDb();
   res.json(db.transcripts);
@@ -143,23 +151,19 @@ app.get('/api/transcripts', (req, res) => {
 app.post('/api/transcripts', (req, res) => {
   const db = loadDb();
   const newTranscript = req.body;
-  
-  // Basic validation
   if (!newTranscript.id || !newTranscript.name || !newTranscript.content) {
     return res.status(400).json({ error: 'Missing transcript parameters' });
   }
-
-  // Ensure unique ID
   const exists = db.transcripts.some(t => t.id === newTranscript.id);
   if (exists) {
     newTranscript.id = `${newTranscript.id}-${Date.now()}`;
   }
-
   db.transcripts.unshift(newTranscript);
   saveDb(db);
   res.status(201).json(newTranscript);
 });
 
+// Generation History API
 app.get('/api/history', (req, res) => {
   const db = loadDb();
   res.json(db.history);
@@ -172,7 +176,137 @@ app.delete('/api/history', (req, res) => {
   res.json({ message: 'History cleared' });
 });
 
-// Trigger pipeline and generate physical markdown files
+// Goals API
+app.get('/api/goals', (req, res) => {
+  const db = loadDb();
+  res.json(db.goals);
+});
+
+app.post('/api/goals', (req, res) => {
+  const db = loadDb();
+  const newGoal = req.body;
+  if (!newGoal.title || !newGoal.priority || !newGoal.agent) {
+    return res.status(400).json({ error: 'Missing goal parameters' });
+  }
+  newGoal.id = `goal-${Date.now()}`;
+  newGoal.status = newGoal.status || 'Active';
+  db.goals.push(newGoal);
+  saveDb(db);
+  res.status(201).json(newGoal);
+});
+
+// Notebook API
+app.get('/api/notes', (req, res) => {
+  const db = loadDb();
+  res.json(db.notes);
+});
+
+app.post('/api/notes', (req, res) => {
+  const db = loadDb();
+  const newNote = req.body;
+  if (!newNote.title || !newNote.content) {
+    return res.status(400).json({ error: 'Missing note parameters' });
+  }
+  newNote.id = `note-${Date.now()}`;
+  db.notes.unshift(newNote);
+  saveDb(db);
+  res.status(201).json(newNote);
+});
+
+app.delete('/api/notes/:id', (req, res) => {
+  const db = loadDb();
+  db.notes = db.notes.filter(n => n.id !== req.params.id);
+  saveDb(db);
+  res.json({ message: 'Note deleted' });
+});
+
+// Kanban Tasks API
+app.get('/api/tasks', (req, res) => {
+  const db = loadDb();
+  res.json(db.tasks);
+});
+
+app.post('/api/tasks', (req, res) => {
+  const db = loadDb();
+  const newTask = req.body;
+  if (!newTask.title) {
+    return res.status(400).json({ error: 'Missing task parameters' });
+  }
+  newTask.id = `task-${Date.now()}`;
+  newTask.status = newTask.status || 'backlog';
+  db.tasks.push(newTask);
+  saveDb(db);
+  res.status(201).json(newTask);
+});
+
+app.put('/api/tasks/:id', (req, res) => {
+  const db = loadDb();
+  const taskIndex = db.tasks.findIndex(t => t.id === req.params.id);
+  if (taskIndex === -1) {
+    return res.status(404).json({ error: 'Task not found' });
+  }
+  db.tasks[taskIndex] = { ...db.tasks[taskIndex], ...req.body };
+  saveDb(db);
+  res.json(db.tasks[taskIndex]);
+});
+
+// Journal API
+app.get('/api/journal', (req, res) => {
+  const db = loadDb();
+  res.json(db.journal);
+});
+
+app.post('/api/journal', (req, res) => {
+  const db = loadDb();
+  const newLog = req.body;
+  if (!newLog.message) {
+    return res.status(400).json({ error: 'Missing log message' });
+  }
+  newLog.id = `log-${Date.now()}`;
+  
+  const now = new Date();
+  newLog.timestamp = newLog.timestamp || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  
+  db.journal.unshift(newLog);
+  saveDb(db);
+  res.status(201).json(newLog);
+});
+
+// Memory API
+app.get('/api/memory', (req, res) => {
+  const db = loadDb();
+  res.json(db.memory);
+});
+
+app.post('/api/memory', (req, res) => {
+  const db = loadDb();
+  const newMem = req.body;
+  if (!newMem.key || !newMem.value) {
+    return res.status(400).json({ error: 'Missing memory parameters' });
+  }
+  
+  // Update if exists, otherwise create
+  const existingIdx = db.memory.findIndex(m => m.key === newMem.key);
+  if (existingIdx !== -1) {
+    db.memory[existingIdx].value = newMem.value;
+    saveDb(db);
+    return res.json(db.memory[existingIdx]);
+  }
+
+  newMem.id = `mem-${Date.now()}`;
+  db.memory.push(newMem);
+  saveDb(db);
+  res.status(201).json(newMem);
+});
+
+app.delete('/api/memory/:id', (req, res) => {
+  const db = loadDb();
+  db.memory = db.memory.filter(m => m.id !== req.params.id);
+  saveDb(db);
+  res.json({ message: 'Memory deleted' });
+});
+
+// File Generator Engine
 app.post('/api/generate', (req, res) => {
   const { keyword, slug, transcriptId, transcriptName, autoDeploy } = req.body;
 
@@ -189,7 +323,6 @@ app.post('/api/generate', (req, res) => {
     `How to Maximize Conversions with ${cap}`
   ];
 
-  // Write physical markdown files to /output directory
   const generatedFiles = [];
   try {
     articles.forEach((title, index) => {
@@ -226,7 +359,7 @@ For more details, visit the reference link below.
       generatedFiles.push(fileName);
     });
 
-    // Add to history log database
+    // Save run record to database history
     const db = loadDb();
     const now = new Date();
     const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -241,6 +374,14 @@ For more details, visit the reference link below.
     };
 
     db.history.unshift(record);
+
+    // Also auto-log to Journal
+    db.journal.unshift({
+      id: `log-${Date.now()}`,
+      message: `Hermes Agent generated 5 articles for keyword "${keyword}" (${slug}). Files written to /output.`,
+      timestamp
+    });
+
     saveDb(db);
 
     res.json({

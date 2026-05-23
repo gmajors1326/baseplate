@@ -33,33 +33,69 @@ export default function CommandPalette({
   const items = [
     { 
       category: 'Navigation', 
-      label: 'Switch to Generate Tab', 
+      label: 'Switch to Generate Tab (SEO)', 
       icon: Compass, 
       action: () => { onNavigate('generate'); onClose(); } 
     },
     { 
       category: 'Navigation', 
-      label: 'Switch to Deploy Tab', 
+      label: 'Switch to Deploy Tab (SEO)', 
       icon: Compass, 
       action: () => { onNavigate('deploy'); onClose(); } 
     },
     { 
       category: 'Navigation', 
-      label: 'Switch to History Tab', 
+      label: 'Switch to History Tab (SEO)', 
       icon: Compass, 
       action: () => { onNavigate('history'); onClose(); } 
     },
     { 
       category: 'Navigation', 
-      label: 'Switch to Transcripts Tab', 
+      label: 'Switch to Transcripts Tab (SEO)', 
       icon: Compass, 
       action: () => { onNavigate('transcripts'); onClose(); } 
     },
     { 
       category: 'Navigation', 
-      label: 'Switch to Skill Reference Tab', 
+      label: 'Switch to Skill Reference Tab (SEO)', 
       icon: Compass, 
       action: () => { onNavigate('skill'); onClose(); } 
+    },
+    { 
+      category: 'Navigation', 
+      label: 'Switch to Goals Console', 
+      icon: Compass, 
+      action: () => { onNavigate('goals'); onClose(); } 
+    },
+    { 
+      category: 'Navigation', 
+      label: 'Switch to Design System Studio', 
+      icon: Compass, 
+      action: () => { onNavigate('studio'); onClose(); } 
+    },
+    { 
+      category: 'Navigation', 
+      label: 'Switch to Notebook Console', 
+      icon: Compass, 
+      action: () => { onNavigate('notebook'); onClose(); } 
+    },
+    { 
+      category: 'Navigation', 
+      label: 'Switch to Kanban Board', 
+      icon: Compass, 
+      action: () => { onNavigate('kanban'); onClose(); } 
+    },
+    { 
+      category: 'Navigation', 
+      label: 'Switch to Journal Chronology Log', 
+      icon: Compass, 
+      action: () => { onNavigate('journal'); onClose(); } 
+    },
+    { 
+      category: 'Navigation', 
+      label: 'Switch to Memory Console', 
+      icon: Compass, 
+      action: () => { onNavigate('memory'); onClose(); } 
     },
     { 
       category: 'Actions', 

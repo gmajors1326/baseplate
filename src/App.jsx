@@ -8,6 +8,14 @@ import HistoryTab from './components/HistoryTab';
 import TranscriptsTab from './components/TranscriptsTab';
 import SkillTab from './components/SkillTab';
 
+// Full Suite consoles
+import GoalsConsole from './components/GoalsConsole';
+import StudioConsole from './components/StudioConsole';
+import NotebookConsole from './components/NotebookConsole';
+import KanbanConsole from './components/KanbanConsole';
+import JournalConsole from './components/JournalConsole';
+import MemoryConsole from './components/MemoryConsole';
+
 import { Play, Rocket, History, FileText, BookOpen } from 'lucide-react';
 
 const RENDER_SERVICE_ID = 'srv-d892qef7f7vs73bp6hb0';
@@ -15,8 +23,16 @@ const RENDER_SERVICE_ID = 'srv-d892qef7f7vs73bp6hb0';
 export default function App() {
   const [activeSelfItem, setActiveSelfItem] = useState('seo');
   const [activeTab, setActiveTab] = useState('generate');
+  
+  // Dynamic collections loaded from backend Express server
   const [transcripts, setTranscripts] = useState([]);
   const [history, setHistory] = useState([]);
+  const [goals, setGoals] = useState([]);
+  const [notes, setNotes] = useState([]);
+  const [tasks, setTasks] = useState([]);
+  const [journal, setJournal] = useState([]);
+  const [memory, setMemory] = useState([]);
+
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   // Simulation State
@@ -31,19 +47,21 @@ export default function App() {
     logs: []
   });
 
-  // Fetch initial data from backend
+  // Fetch initial data from backend APIs
   useEffect(() => {
     fetchTranscripts();
     fetchHistory();
+    fetchGoals();
+    fetchNotes();
+    fetchTasks();
+    fetchJournal();
+    fetchMemory();
   }, []);
 
   const fetchTranscripts = async () => {
     try {
       const res = await fetch('/api/transcripts');
-      if (res.ok) {
-        const data = await res.json();
-        setTranscripts(data);
-      }
+      if (res.ok) setTranscripts(await res.json());
     } catch (err) {
       console.error('Failed to fetch transcripts', err);
     }
@@ -52,12 +70,54 @@ export default function App() {
   const fetchHistory = async () => {
     try {
       const res = await fetch('/api/history');
-      if (res.ok) {
-        const data = await res.json();
-        setHistory(data);
-      }
+      if (res.ok) setHistory(await res.json());
     } catch (err) {
       console.error('Failed to fetch history', err);
+    }
+  };
+
+  const fetchGoals = async () => {
+    try {
+      const res = await fetch('/api/goals');
+      if (res.ok) setGoals(await res.json());
+    } catch (err) {
+      console.error('Failed to fetch goals', err);
+    }
+  };
+
+  const fetchNotes = async () => {
+    try {
+      const res = await fetch('/api/notes');
+      if (res.ok) setNotes(await res.json());
+    } catch (err) {
+      console.error('Failed to fetch notes', err);
+    }
+  };
+
+  const fetchTasks = async () => {
+    try {
+      const res = await fetch('/api/tasks');
+      if (res.ok) setTasks(await res.json());
+    } catch (err) {
+      console.error('Failed to fetch tasks', err);
+    }
+  };
+
+  const fetchJournal = async () => {
+    try {
+      const res = await fetch('/api/journal');
+      if (res.ok) setJournal(await res.json());
+    } catch (err) {
+      console.error('Failed to fetch journal', err);
+    }
+  };
+
+  const fetchMemory = async () => {
+    try {
+      const res = await fetch('/api/memory');
+      if (res.ok) setMemory(await res.json());
+    } catch (err) {
+      console.error('Failed to fetch memory', err);
     }
   };
 
@@ -131,8 +191,9 @@ export default function App() {
         }
 
         if (nextStatus === 'completed') {
-          // Fetch updated history from backend (which includes the real files created)
+          // Fetch updated history and journals from backend (which includes the real files created)
           fetchHistory();
+          fetchJournal();
 
           setSimulation(prev => ({
             ...prev,
@@ -165,11 +226,14 @@ export default function App() {
     ];
   };
 
+  /* ========================================================
+     REST Handler Callbacks
+     ======================================================== */
+
   const handleGenerate = async (data) => {
-    // Switch to Deploy tab to see the live build logs
+    setActiveSelfItem('seo');
     setActiveTab('deploy');
     
-    // Start simulation locally
     setSimulation({
       status: 'running',
       step: 0,
@@ -181,7 +245,6 @@ export default function App() {
       logs: [`[system] Kicking off SEO Content Pipeline...`]
     });
 
-    // Make real request to backend to generate files and save to history
     try {
       await fetch('/api/generate', {
         method: 'POST',
@@ -215,10 +278,6 @@ export default function App() {
     }
   };
 
-  const handlePasteNewTranscriptFromPalette = () => {
-    setActiveTab('transcripts');
-  };
-
   const handleClearHistory = async () => {
     try {
       const res = await fetch('/api/history', { method: 'DELETE' });
@@ -230,65 +289,166 @@ export default function App() {
     }
   };
 
+  const handleAddGoal = async (goal) => {
+    try {
+      const res = await fetch('/api/goals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(goal)
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setGoals(prev => [...prev, saved]);
+        
+        // Auto-log to journal
+        handleAddJournalEntry({
+          message: `Goal Mission created: "${saved.title}" (Agent: ${saved.agent}, Priority: ${saved.priority})`
+        });
+      }
+    } catch (err) {
+      console.error('Failed to save goal', err);
+    }
+  };
+
+  const handleAddNote = async (note) => {
+    try {
+      const res = await fetch('/api/notes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(note)
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setNotes(prev => [saved, ...prev]);
+      }
+    } catch (err) {
+      console.error('Failed to save note', err);
+    }
+  };
+
+  const handleDeleteNote = async (id) => {
+    try {
+      const res = await fetch(`/api/notes/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setNotes(prev => prev.filter(n => n.id !== id));
+      }
+    } catch (err) {
+      console.error('Failed to delete note', err);
+    }
+  };
+
+  const handleAddTask = async (task) => {
+    try {
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(task)
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setTasks(prev => [...prev, saved]);
+      }
+    } catch (err) {
+      console.error('Failed to create task', err);
+    }
+  };
+
+  const handleUpdateTaskStatus = async (id, newStatus) => {
+    try {
+      const res = await fetch(`/api/tasks/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setTasks(prev => prev.map(t => t.id === id ? updated : t));
+        
+        // Auto-log to journal
+        handleAddJournalEntry({
+          message: `Kanban Task status updated: "${updated.title}" shifted to ${newStatus.toUpperCase()}`
+        });
+      }
+    } catch (err) {
+      console.error('Failed to update task status', err);
+    }
+  };
+
+  const handleAddJournalEntry = async (entry) => {
+    try {
+      const res = await fetch('/api/journal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry)
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setJournal(prev => [saved, ...prev]);
+      }
+    } catch (err) {
+      console.error('Failed to write log entry', err);
+    }
+  };
+
+  const handleAddMemory = async (mem) => {
+    try {
+      const res = await fetch('/api/memory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mem)
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        // Check if updating
+        setMemory(prev => {
+          const idx = prev.findIndex(m => m.key === saved.key);
+          if (idx !== -1) {
+            return prev.map(m => m.key === saved.key ? saved : m);
+          }
+          return [...prev, saved];
+        });
+
+        // Auto-log to journal
+        handleAddJournalEntry({
+          message: `Configuration Memory saved: [${saved.key} => ${saved.value}]`
+        });
+      }
+    } catch (err) {
+      console.error('Failed to save memory', err);
+    }
+  };
+
+  const handleDeleteMemory = async (id) => {
+    try {
+      const res = await fetch(`/api/memory/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setMemory(prev => prev.filter(m => m.id !== id));
+      }
+    } catch (err) {
+      console.error('Failed to delete memory', err);
+    }
+  };
+
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
   };
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'generate':
-        return (
-          <GenerateTab 
-            transcripts={transcripts} 
-            onPasteNewTranscript={() => handleTabChange('transcripts')} 
-            onGenerate={handleGenerate} 
-          />
-        );
-      case 'deploy':
-        return (
-          <DeployTab 
-            simulationState={simulation} 
-            history={history} 
-          />
-        );
-      case 'history':
-        return (
-          <HistoryTab 
-            history={history} 
-            onClear={handleClearHistory} 
-          />
-        );
-      case 'transcripts':
-        return (
-          <TranscriptsTab 
-            transcripts={transcripts} 
-            onAddTranscript={handleAddTranscript} 
-          />
-        );
-      case 'skill':
-        return <SkillTab />;
-      default:
-        return null;
+  // Switch navigation via Command Palette
+  const handlePaletteNavigate = (dest) => {
+    if (['generate', 'deploy', 'history', 'transcripts', 'skill'].includes(dest)) {
+      setActiveSelfItem('seo');
+      setActiveTab(dest);
+    } else {
+      // Direct navigation to sidebar consoles
+      setActiveSelfItem(dest);
     }
   };
 
-  return (
-    <div className="h-screen w-screen flex bg-zinc-950 text-zinc-50 overflow-hidden relative font-sans">
-      {/* Ambient Lighting Background Glows */}
-      <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none animate-glow-1 z-0"></div>
-      <div className="absolute bottom-[-10%] left-[20%] w-[500px] h-[500px] rounded-full bg-purple-500/10 blur-[120px] pointer-events-none animate-glow-2 z-0"></div>
-      <div className="absolute top-[30%] left-[-10%] w-[450px] h-[450px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none z-0"></div>
-
-      {/* Left Sidebar */}
-      <Sidebar activeSelfItem={activeSelfItem} setActiveSelfItem={setActiveSelfItem} />
-
-      {/* Main Content Area */}
-      <main className="flex-1 flex flex-col h-full overflow-y-auto p-8 relative z-10">
-        {activeSelfItem === 'seo' ? (
-          <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full">
-            {/* Top Navigation / Header */}
-            <Header onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} />
-
+  const renderActiveConsole = () => {
+    switch (activeSelfItem) {
+      case 'seo':
+        return (
+          <div className="flex-1 flex flex-col w-full">
             {/* Tab Bar Selection */}
             <div className="flex items-center gap-3.5 mb-6 border-b border-white/5 pb-4 select-none">
               {[
@@ -328,34 +488,104 @@ export default function App() {
               })}
             </div>
 
-            {/* Main Application Shell (Workspaces Card) */}
+            {/* Main Application Card */}
             <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl backdrop-blur-md flex flex-col justify-start">
-              {renderTabContent()}
+              {activeTab === 'generate' && (
+                <GenerateTab 
+                  transcripts={transcripts} 
+                  onPasteNewTranscript={() => handleTabChange('transcripts')} 
+                  onGenerate={handleGenerate} 
+                />
+              )}
+              {activeTab === 'deploy' && (
+                <DeployTab 
+                  simulationState={simulation} 
+                  history={history} 
+                />
+              )}
+              {activeTab === 'history' && (
+                <HistoryTab 
+                  history={history} 
+                  onClear={handleClearHistory} 
+                />
+              )}
+              {activeTab === 'transcripts' && (
+                <TranscriptsTab 
+                  transcripts={transcripts} 
+                  onAddTranscript={handleAddTranscript} 
+                />
+              )}
+              {activeTab === 'skill' && <SkillTab />}
             </div>
           </div>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center max-w-5xl mx-auto w-full text-center border border-white/10 rounded-2xl bg-white/5 backdrop-blur-md p-12">
-            <span className="text-xs font-mono text-zinc-500 uppercase tracking-widest mb-2">Agentic OS Terminal</span>
-            <h3 className="text-xl font-bold text-zinc-200 mb-2">Section Under Development</h3>
-            <p className="text-xs text-zinc-400 max-w-md">
-              You clicked on the <code className="text-[#e4f35b] font-mono uppercase">{activeSelfItem}</code> module. Only the <code className="text-[#e4f35b] font-mono uppercase">SEO</code> Content Pipeline console is fully operational in this node build.
-            </p>
-            <button
-              type="button"
-              onClick={() => setActiveSelfItem('seo')}
-              className="mt-6 px-5 py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-xs font-bold text-zinc-300 border border-white/5 transition-all min-h-[44px]"
-            >
-              Return to SEO Console
-            </button>
+        );
+      case 'goals':
+        return (
+          <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl backdrop-blur-md flex flex-col justify-start w-full">
+            <GoalsConsole goals={goals} onAddGoal={handleAddGoal} />
           </div>
-        )}
+        );
+      case 'studio':
+        return (
+          <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl backdrop-blur-md flex flex-col justify-start w-full">
+            <StudioConsole />
+          </div>
+        );
+      case 'notebook':
+        return (
+          <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl backdrop-blur-md flex flex-col justify-start w-full">
+            <NotebookConsole notes={notes} onAddNote={handleAddNote} onDeleteNote={handleDeleteNote} />
+          </div>
+        );
+      case 'kanban':
+        return (
+          <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl backdrop-blur-md flex flex-col justify-start w-full">
+            <KanbanConsole tasks={tasks} onAddTask={handleAddTask} onUpdateTaskStatus={handleUpdateTaskStatus} />
+          </div>
+        );
+      case 'journal':
+        return (
+          <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl backdrop-blur-md flex flex-col justify-start w-full">
+            <JournalConsole journal={journal} onAddJournalEntry={handleAddJournalEntry} />
+          </div>
+        );
+      case 'memory':
+        return (
+          <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-6 shadow-xl backdrop-blur-md flex flex-col justify-start w-full">
+            <MemoryConsole memory={memory} onAddMemory={handleAddMemory} onDeleteMemory={handleDeleteMemory} />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="h-screen w-screen flex bg-zinc-950 text-zinc-50 overflow-hidden relative font-sans">
+      {/* Ambient Lighting Background Glows */}
+      <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none animate-glow-1 z-0"></div>
+      <div className="absolute bottom-[-10%] left-[20%] w-[500px] h-[500px] rounded-full bg-purple-500/10 blur-[120px] pointer-events-none animate-glow-2 z-0"></div>
+      <div className="absolute top-[30%] left-[-10%] w-[450px] h-[450px] rounded-full bg-emerald-500/5 blur-[120px] pointer-events-none z-0"></div>
+
+      {/* Left Sidebar */}
+      <Sidebar activeSelfItem={activeSelfItem} setActiveSelfItem={setActiveSelfItem} />
+
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col h-full overflow-y-auto p-8 relative z-10">
+        <div className="flex-1 flex flex-col max-w-5xl mx-auto w-full">
+          {/* Top Navigation / Header */}
+          <Header onOpenCommandPalette={() => setIsCommandPaletteOpen(true)} />
+
+          {/* Dynamic Console Component Rendering */}
+          {renderActiveConsole()}
+        </div>
       </main>
 
       {/* Command Palette Modal */}
       <CommandPalette 
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
-        onNavigate={handleTabChange}
+        onNavigate={handlePaletteNavigate}
         onTriggerSimulation={() => handleGenerate({
           keyword: 'agentic workflow optimization',
           slug: 'agentic-workflow-optimization',
